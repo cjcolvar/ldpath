@@ -3,17 +3,24 @@ orbs:
   samvera: samvera/circleci-orb@0
 jobs:
   build:
+    parameters:
+      ruby_version:
+        type: string
+      bundler_version:
+        type: string
+        default: "1.17"
+
     executor:
       name: 'samvera/ruby'
-      ruby_version: "2.5.7"
+      ruby_version: << parameters.ruby_version >>
 
     working_directory: ~/repo
 
     steps:
       - samvera/cached_checkout
       - samvera/bundle_for_gem:
-          ruby_version: "2.5.7"
-          bundler_version: "1.17"
+          ruby_version: << parameters.ruby_version >>
+          bundler_version: << parameters.bundler_version >>
           project: ldpath
       - samvera/parallel_rspec
 
@@ -23,3 +30,17 @@ jobs:
       - store_artifacts:
           path: /tmp/test-results
           destination: test-results
+
+workflows:
+  version: 2
+  ci:
+    jobs:
+      - build:
+          name: "ruby2-4"
+          ruby_version: "2.4.9"
+      - build:
+          name: "ruby2-5"
+          ruby_version: "2.5.7"
+      - build:
+          name: "ruby2-6"
+          ruby_version: "2.6.5"
